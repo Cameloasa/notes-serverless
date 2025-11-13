@@ -1,0 +1,11 @@
+# COPY THIS FILE TO config.yml AND ADD YOUR REAL API KEYS
+# This is just a template - never commit real keys to GitHub!
+
+dev:
+  API_KEYS:
+    - "your-dev-api-key-here-12345"
+    - "another-dev-key-if-needed"
+
+prod:
+  API_KEYS:
+    - "your-prod-api-key-here-67890"

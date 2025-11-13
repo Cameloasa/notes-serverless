@@ -18,3 +18,16 @@ var/
 
 # Serverless directories
 .serverless
+
+# Config files with secrets
+config.yml
+.env
+*.env
+
+# API Keys and sensitive data
+secrets/
+keys/
+*.key
+
+# Local development files
+.local/

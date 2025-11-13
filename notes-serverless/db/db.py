@@ -1,4 +1,5 @@
 import boto3
+from boto3.dynamodb.conditions import Key
 
 # DynamoDB resource
 dynamodb = boto3.resource('dynamodb')
@@ -14,10 +15,8 @@ def put_note(note_item):
 def get_notes_by_username(username):
 
     response = notes_table.query(
-        KeyConditionExpression='username = :u',
-        ExpressionAttributeValues={':u': username}
+        KeyConditionExpression=Key('username').eq(username)  
     )
-
     return response.get('Items', [])
 
 # Scan to find note by unique ID.
@@ -36,13 +35,20 @@ def update_note(note_id, update_values):
     
     update_expr = "SET "
     expr_attr_values = {}
-    for i, (key, value) in enumerate(update_values.items()):
-        placeholder = f":val{i}"
-        update_expr += f"{key} = {placeholder}, "
-        expr_attr_values[placeholder] = value
 
+    # Add only fields than can be modified 
+    if 'title' in update_values:
+        update_expr += "title = :title, "
+        expr_attr_values[':title'] = update_values['title']
+    
+    if 'text' in update_values:
+        update_expr += "text = :text, "
+        expr_attr_values[':text'] = update_values['text']
+    
+    #  modifiedAt
+    from datetime import datetime, timezone
     update_expr += "modifiedAt = :mod"
-    expr_attr_values[":mod"] = update_values.get("modifiedAt")
+    expr_attr_values[':mod'] = datetime.now(timezone.utc).isoformat()
 
     return notes_table.update_item(
         Key={'id': note_id},

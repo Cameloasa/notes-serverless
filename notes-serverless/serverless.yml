@@ -1,19 +1,63 @@
-# "org" ensures this Service is used with the correct Serverless Framework Access Key.
 org: cameloasa
-# "service" is the name of this project. This will also be added to your AWS resource names.
 service: notes-serverless
 
 provider:
   name: aws
   runtime: python3.12
-  # Uncomment to easily set up a custom domain. Read the docs for more details:
-  # https://www.serverless.com/framework/docs/providers/aws/guide/domains
-  # domain: api.example.com
+  region: eu-north-1
+  stage: dev
+
+plugins:
+  - serverless-offline
+  - serverless-dynamodb-local
 
 functions:
-  hello:
-    handler: handler.hello
+  # Create Note
+  createNote:
+    handler: handler.create_note
     events:
       - httpApi:
-          path: /
+          path: /api/notes/{username}
+          method: post
+
+  # Get Notes by User
+  getNotes:
+    handler: handler.get_notes
+    events:
+      - httpApi:
+          path: /api/notes/{username}
           method: get
+
+  # Update Note
+  updateNote:
+    handler: handler.update_note
+    events:
+      - httpApi:
+          path: /api/notes/{id}
+          method: put
+
+  # Delete Note
+  deleteNote:
+    handler: handler.delete_note
+    events:
+      - httpApi:
+          path: /api/notes/{id}
+          method: delete
+
+resources:
+  Resources:
+    NotesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}
+        AttributeDefinitions:
+          - AttributeName: username
+            AttributeType: S
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: username
+            KeyType: HASH
+          - AttributeName: id
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
