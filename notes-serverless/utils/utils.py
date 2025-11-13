@@ -5,7 +5,8 @@ def generate_note_item(username, title,text):
     # Generate a new note item with a unique ID and timestamp
 
     note_id = str(uuid.uuid4())
-    now =  datetime.now(timezone.utc).isoformat()
+    # now =  datetime.now(timezone.utc).isoformat()
+    now = str(datetime.now())
 
     return {
         'id': note_id,
