@@ -6,43 +6,55 @@ provider:
   runtime: python3.12
   region: eu-north-1
   stage: dev
-
-plugins:
-  - serverless-offline
-  - serverless-dynamodb-local
+  httpApi:
+    authorizers:
+      notesAuthorizer:
+        type: request
+        functionName: authorizer
+        payloadVersion: "2.0"
+        enableSimpleResponses: true
+        identitySource:
+          - $request.header.x-api-key
 
 functions:
-  # Create Note
+  authorizer:
+    handler: handler.authorizer.lambda_handler
+
   createNote:
-    handler: handler.create_note
+    handler: handler.create_note.lambda_handler
     events:
       - httpApi:
           path: /api/notes/{username}
           method: post
+          authorizer:
+            name: notesAuthorizer
 
-  # Get Notes by User
   getNotes:
-    handler: handler.get_notes
+    handler: handler.get_notes.lambda_handler  
     events:
       - httpApi:
           path: /api/notes/{username}
           method: get
+          authorizer:
+            name: notesAuthorizer
 
-  # Update Note
   updateNote:
-    handler: handler.update_note
+    handler: handler.update_note.lambda_handler
     events:
       - httpApi:
           path: /api/notes/{id}
           method: put
+          authorizer:
+            name: notesAuthorizer
 
-  # Delete Note
   deleteNote:
-    handler: handler.delete_note
+    handler: handler.delete_note.lambda_handler
     events:
       - httpApi:
           path: /api/notes/{id}
           method: delete
+          authorizer:
+            name: notesAuthorizer
 
 resources:
   Resources:

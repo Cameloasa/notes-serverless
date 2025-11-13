@@ -5,7 +5,7 @@ from boto3.dynamodb.conditions import Key
 dynamodb = boto3.resource('dynamodb')
 
 # Reference to notes table
-notes_table = dynamodb.Table('notes')
+notes_table = dynamodb.Table('notes-serverless-dev')
 
 # Insert a new note into the DynamoDB table
 def put_note(note_item):
