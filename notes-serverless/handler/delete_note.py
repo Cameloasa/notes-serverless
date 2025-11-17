@@ -21,8 +21,11 @@ def lambda_handler(event, context):
                 'body': json.dumps({'message': 'Note not found'})
             }
         
+        # get username from find note
+        username = existing_note['username']
+        
         # Delete note from database
-        delete_note(note_id)
+        delete_note(username, note_id)
         
         return {
             'statusCode': 200,

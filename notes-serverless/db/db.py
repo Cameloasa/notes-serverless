@@ -21,22 +21,19 @@ def get_notes_by_username(username):
 
 # Scan to find note by unique ID.
 def get_note_by_id(note_id):
-    
-    response = notes_table.scan(
-        FilterExpression='id = :id',
-        ExpressionAttributeValues={':id': note_id}
+    response = notes_table.query(
+        IndexName='idIndex',
+        KeyConditionExpression=Key('id').eq(note_id)
     )
     items = response.get('Items', [])
     return items[0] if items else None
 
 # Update note fields and modifiedAt timestamp.
 # update_values: dict with keys like title, text
-def update_note(note_id, update_values):
-    
+def update_note(username, note_id, update_values):
     update_expr = "SET "
     expr_attr_values = {}
 
-    # Add only fields than can be modified 
     if 'title' in update_values:
         update_expr += "title = :title, "
         expr_attr_values[':title'] = update_values['title']
@@ -45,19 +42,17 @@ def update_note(note_id, update_values):
         update_expr += "text = :text, "
         expr_attr_values[':text'] = update_values['text']
     
-    #  modifiedAt
     from datetime import datetime, timezone
     update_expr += "modifiedAt = :mod"
     expr_attr_values[':mod'] = datetime.now(timezone.utc).isoformat()
 
     return notes_table.update_item(
-        Key={'id': note_id},
+        Key={'username': username, 'id': note_id},
         UpdateExpression=update_expr,
         ExpressionAttributeValues=expr_attr_values,
         ReturnValues="ALL_NEW"
     )
 
 # Delete a note by its unique ID.
-def delete_note(note_id):
-    
-    return notes_table.delete_item(Key={'id': note_id})
+def delete_note(username, note_id):
+    return notes_table.delete_item(Key={'username': username, 'id': note_id})

@@ -42,6 +42,9 @@ def lambda_handler(event, context):
                 'body': json.dumps({'message': 'Note not found'})
             }
         
+        # get username from find note
+        username = existing_note['username']
+        
         # Get ready data for updating
         update_data = {}
         if title is not None:
@@ -50,7 +53,7 @@ def lambda_handler(event, context):
             update_data['text'] = text
         
         # Update note in database 
-        updated_note = update_note(note_id, update_data)
+        updated_note = update_note(username, note_id, update_data)
         
         return {
             'statusCode': 200,

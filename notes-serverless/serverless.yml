@@ -6,6 +6,9 @@ provider:
   runtime: python3.12
   region: eu-north-1
   stage: dev
+  environment:
+    API_KEYS: ${file(config.yml):${self:provider.stage}.API_KEYS}
+  role: arn:aws:iam::259124312060:role/LambdaDynamoDBRole
   httpApi:
     authorizers:
       notesAuthorizer:
@@ -15,6 +18,7 @@ provider:
         enableSimpleResponses: true
         identitySource:
           - $request.header.x-api-key
+
 
 functions:
   authorizer:
@@ -73,3 +77,10 @@ resources:
           - AttributeName: id
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
+        GlobalSecondaryIndexes:
+        - IndexName: idIndex
+          KeySchema:
+            - AttributeName: id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
