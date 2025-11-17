@@ -1,5 +1,7 @@
 import boto3
 from boto3.dynamodb.conditions import Key
+from utils.utils import current_timestamp
+from utils.utils import build_update_expression
 
 # DynamoDB resource
 dynamodb = boto3.resource('dynamodb')
@@ -19,7 +21,7 @@ def get_notes_by_username(username):
     )
     return response.get('Items', [])
 
-# Scan to find note by unique ID.
+
 def get_note_by_id(note_id):
     response = notes_table.query(
         IndexName='idIndex',
@@ -31,28 +33,21 @@ def get_note_by_id(note_id):
 # Update note fields and modifiedAt timestamp.
 # update_values: dict with keys like title, text
 def update_note(username, note_id, update_values):
-    update_expr = "SET "
-    expr_attr_values = {}
-
-    if 'title' in update_values:
-        update_expr += "title = :title, "
-        expr_attr_values[':title'] = update_values['title']
-    
-    if 'text' in update_values:
-        update_expr += "text = :text, "
-        expr_attr_values[':text'] = update_values['text']
-    
-    from datetime import datetime, timezone
-    update_expr += "modifiedAt = :mod"
-    expr_attr_values[':mod'] = datetime.now(timezone.utc).isoformat()
+    update_expr, expr_attr_values, expr_attr_names = build_update_expression(update_values)
 
     return notes_table.update_item(
         Key={'username': username, 'id': note_id},
         UpdateExpression=update_expr,
         ExpressionAttributeValues=expr_attr_values,
+        ExpressionAttributeNames=expr_attr_names,
         ReturnValues="ALL_NEW"
     )
 
 # Delete a note by its unique ID.
 def delete_note(username, note_id):
-    return notes_table.delete_item(Key={'username': username, 'id': note_id})
+    return notes_table.update_item(
+        Key={'username': username, 'id': note_id},
+        UpdateExpression="SET deletedAt = :del",
+        ExpressionAttributeValues={':del': current_timestamp()},
+        ReturnValues="ALL_NEW"
+    )
